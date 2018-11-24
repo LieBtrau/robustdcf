@@ -1,40 +1,12 @@
 {
   "name": "RobustDcf",
+  "version": "1.0",
   "keywords": "dcf, dcf77, clock",
   "description": "Arduino Library for decoding DCF77 data",
   "repository":
   {
     "type": "git",
     "url": "https://github.com/LieBtrau/robustdcf.git"
-  },
-  "authors":
-  [
-    {
-      "name": "Christoph Tack",
-      "url": "https://github.com/LieBtrau",
-      "maintainer": true
-    }
-  ],
-  "dependencies":
-  [
-    {
-    "name": "Chronos",
-    "authors": "Pat Deegan",
-    "frameworks": "arduino"
-    },
-    {
-    "name": "Time",
-    "authors": "Michael Margolis",
-    "frameworks": "arduino"
-    },
-    {
-    "name": "Timezone",
-    "authors": "Jack Christensen",
-    "frameworks": "arduino"
-    }
-  ],
-  "version": "1.0",
-  "frameworks": "arduino",
-  "platforms": "ststm32"
+  }
 }
 
