@@ -37,7 +37,7 @@ public:
   bool getTimeData(BITDATA *pdata);
 
 private:
-  static const int8_t LOCK_THRESHOLD = 5;
+  static const int8_t LOCK_THRESHOLD = 7;
   bool dataValid(uint64_t x);
   Bin _bin;
   uint8_t _activeBin = 0;
