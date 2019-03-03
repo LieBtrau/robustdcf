@@ -18,6 +18,8 @@
 */
 #include "phaseDetector.h"
 
+extern void HAL_SYSTICK_Callback(void);
+
 static PhaseDetector *psd;
 void getSample();
 
@@ -33,7 +35,6 @@ void PhaseDetector::init(event secondTickEvent)
     digitalWrite(_monitorPin, HIGH);
     pinMode(_monitorPin, OUTPUT);
     _secondsEvent = secondTickEvent;
-    systick_attach_callback(getSample);
 }
 
 //Sample data to check if a short/long tick is in the current second and if there's a minute sync mark (no pulse at all).
@@ -192,7 +193,7 @@ void PhaseDetector::process_one_sample()
     averager(sampled_data ? 0 : 1);
 }
 
-void getSample()
+void HAL_SYSTICK_Callback(void)
 {
     psd->process_one_sample();
 }
