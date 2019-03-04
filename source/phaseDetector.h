@@ -39,7 +39,7 @@ private:
   static const uint16_t BINS_PER_10ms = BIN_COUNT / 100;
   static const uint16_t BINS_PER_100ms = 10 * BINS_PER_10ms;
   static const uint16_t BINS_PER_200ms = 20 * BINS_PER_10ms;
-  static const uint32_t LOCK_THRESHOLD = 75;
+  const uint32_t LOCK_THRESHOLD = 75;
 
   uint8_t wrap(const uint8_t value);
   bool phaseCorrelator();
