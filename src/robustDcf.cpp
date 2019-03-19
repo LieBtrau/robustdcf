@@ -21,7 +21,7 @@
 static volatile bool secondTicked = false;
 static bool syncMark, longPulse;
 
-RobustDcf::RobustDcf(const byte inputPin, const byte monitorPin) : _pd(inputPin, monitorPin),
+RobustDcf::RobustDcf(const byte inputPin) : _pd(inputPin),
                                                                    _minutes(21, 7, true, 0, 59, 4),
                                                                    _hours(29, 6, true, 0, 23, 3),
                                                                    _days(36, 6, false, 1, 31, 3),
