@@ -1,6 +1,6 @@
 #include "robustDcf.h"
 
-RobustDcf rd(PB6);
+RobustDcf rd(PB6,true);
 
 void setup()
 {

@@ -27,7 +27,7 @@
 class RobustDcf
 {
 public:
-  RobustDcf(const byte inputPin);
+  RobustDcf(const byte inputPin, bool pulseHighPolarity);
   void init();
   bool update(Chronos::EpochTime &unixEpoch);
   bool updateClock(SecondsDecoder::BITDATA *data, Chronos::EpochTime *pEpoch);

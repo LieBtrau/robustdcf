@@ -28,7 +28,7 @@ typedef void (*event)(const bool isSync, const bool isLongPulse);
 class PhaseDetector
 {
 public:
-  PhaseDetector(const byte inputPin);
+  PhaseDetector(const byte inputPin, bool pulseHighPolarity);
   void init(event secondTickEvent);
   void process_one_sample();
 
@@ -50,6 +50,7 @@ private:
   byte _inputPin = 0;
   event _secondsEvent = nullptr;
   Bin _bin; //100bins, each holding for 10ms of data
+  bool _pulseActiveHigh;
   uint32_t _phaseCorrelation[BIN_COUNT];
   uint8_t _activeBin = 0;
   uint8_t _pulseStartBin = UINT8_MAX;

@@ -23,7 +23,10 @@ extern void HAL_SYSTICK_Callback(void);
 static PhaseDetector *psd;
 void getSample();
 
-PhaseDetector::PhaseDetector(const byte inputPin) : _inputPin(inputPin), _bin(BIN_COUNT, INT8_MIN)
+PhaseDetector::PhaseDetector(const byte inputPin, bool pulseHighPolarity) : 
+    _inputPin(inputPin), 
+    _bin(BIN_COUNT, INT8_MIN), 
+    _pulseActiveHigh(pulseHighPolarity)
 {
     memset(_phaseCorrelation, 0, sizeof(_phaseCorrelation));
     psd = this;
@@ -185,9 +188,7 @@ void PhaseDetector::averager(const uint8_t sampled_data)
 void PhaseDetector::process_one_sample()
 {
     const uint8_t sampled_data = digitalRead(_inputPin);
-
-    //sample inverter for HKW module
-    averager(sampled_data ? 0 : 1);
+    averager(!_pulseActiveHigh ? (sampled_data ? 0 : 1) : sampled_data);
 }
 
 void HAL_SYSTICK_Callback(void)
