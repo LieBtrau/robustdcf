@@ -22,6 +22,14 @@
 #pragma once
 #include "Arduino.h"
 #include "bin.h"
+
+typedef enum
+{
+	SHORTPULSE,
+	LONGPULSE,
+	UNKNOWNPULSE
+}SECONDS_DATA;
+
 class SecondsDecoder
 {
 public:
@@ -32,7 +40,7 @@ public:
   } BITDATA;
   static const uint8_t SECONDS_PER_MINUTE = 60;
   SecondsDecoder();
-  void updateSeconds(const bool isSyncMark, const bool isLongPulse);
+  void updateSeconds(const bool isSyncMark, const SECONDS_DATA pulseLength);
   bool getSecond(uint8_t &second);
   bool getTimeData(BITDATA *pdata);
 

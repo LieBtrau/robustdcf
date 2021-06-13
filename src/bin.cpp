@@ -18,6 +18,12 @@
 */
 #include "bin.h"
 
+/**
+ * @brief Data is stored in different bins.  Each bin holds some data value.
+ * 
+ * @param dataSize  the number of different bins
+ * @param initVal   the initial value for all bins
+ */
 Bin::Bin(uint8_t dataSize, int8_t initVal) : _dataSize(dataSize)
 {
     _pData = (int8_t *)malloc(_dataSize);
@@ -35,6 +41,9 @@ Bin::~Bin()
     }
 }
 
+/**
+ * @brief Add a value N to the bin[index]
+ */
 void Bin::add(uint8_t index, int8_t N)
 {
     if (_pData[index] == INT8_MAX)
@@ -54,16 +63,25 @@ void Bin::add(uint8_t index, int8_t N)
     }
 }
 
+/**
+ * @brief Get the number of different bins
+ */
 uint8_t Bin::size()
 {
     return _dataSize;
 }
 
+/**
+ * @brief Bins contain 8bit signed values, the function will offset the value in the bin to make it unsigned
+ */
 uint8_t Bin::getUnsigned(uint8_t index)
 {
     return _pData[index]+128;
 }
 
+/**
+ * @brief Find the bin that contains the highest value and return its index
+ */
 uint8_t Bin::maximum(int8_t threshold)
 {
     int8_t maximum = INT8_MIN;
@@ -82,6 +100,9 @@ uint8_t Bin::maximum(int8_t threshold)
     return maxBin;
 }
 
+/**
+ * @brief Add N to bin[index] but make sure not to overflow the bin
+ */
 void Bin::bounded_increment(uint8_t index, int8_t N)
 {
     int8_t *pval = &_pData[index];

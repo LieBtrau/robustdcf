@@ -19,7 +19,8 @@
 #include "robustDcf.h"
 
 static volatile bool secondTicked = false;
-static bool syncMark, longPulse;
+static bool syncMark;
+static SECONDS_DATA clockPulseLength;
 
 RobustDcf::RobustDcf(const byte inputPin, bool pulseHighPolarity) : _pd(inputPin, pulseHighPolarity),
                                                                    _minutes(21, 7, true, 0, 59, 4),
@@ -31,10 +32,10 @@ RobustDcf::RobustDcf(const byte inputPin, bool pulseHighPolarity) : _pd(inputPin
 }
 
 //secondsTick is called by an ISR.  It should be kept as short as possible
-static void secondsTick(const bool isSyncMark, const bool isLongPulse)
+static void secondsTick(const bool isSyncMark, const SECONDS_DATA pulseLength)
 {
     syncMark = isSyncMark;
-    longPulse = isLongPulse;
+    clockPulseLength = pulseLength;
     secondTicked = true;
 }
 
@@ -50,8 +51,9 @@ bool RobustDcf::update(Chronos::EpochTime &unixEpoch)
     {
         return false;
     }
+
     secondTicked = false;
-    _sd.updateSeconds(syncMark, longPulse);
+    _sd.updateSeconds(syncMark, clockPulseLength);
     uint8_t second;
     SecondsDecoder::BITDATA data;
     if ((!_sd.getSecond(second)) || (second != 59) || (!_sd.getTimeData(&data)))
