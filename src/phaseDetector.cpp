@@ -55,7 +55,11 @@ void PhaseDetector::init(event secondTickEvent)
 	_secondsEvent = secondTickEvent;
 }
 
-//Sample data to check if a short/long tick is in the current second and if there's a minute sync mark (no pulse at all).
+/**
+ * @brief Sample data to check if a short/long tick is in the current second and if there's a minute sync mark (no pulse at all).
+ * This function can generate an event every second, containing the pin status : sync or not, long or short pulse
+ * @param averagedInput input pin value, averaged over the last 10ms
+ */
 void PhaseDetector::secondsSampler(const FUZZY averagedInput)
 {
 	static byte state = 0;
@@ -178,7 +182,7 @@ bool PhaseDetector::phaseCorrelator()
 
 /**
  * @brief Add the averaged sample to the correct bin.
- * This function gets called every 10ms
+ * This function gets called every 10ms.
  * @param input the most occuring pin state sampled over the last 10ms
  */
 void PhaseDetector::phase_binning(const FUZZY input)

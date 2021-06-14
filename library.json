@@ -1,6 +1,6 @@
 {
   "name": "RobustDcf",
-  "version": "2.3",
+  "version": "2.4",
   "keywords": "dcf, dcf77, clock",
   "description": "Arduino Library for decoding DCF77 data",
   "repository":

@@ -85,7 +85,7 @@ uint8_t Bin::getUnsigned(uint8_t index)
 uint8_t Bin::maximum(int8_t threshold)
 {
     int8_t maximum = INT8_MIN;
-    uint8_t maxBin = 0xFF;
+    uint8_t maxBin = INVALID;
     //Find bin with the highest score.
     for (uint8_t i = 0; i < _dataSize; i++)
     {

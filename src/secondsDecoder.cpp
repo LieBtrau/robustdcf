@@ -14,30 +14,38 @@
  * You should have received a copy of the GNU General Public License
  * along with Foobar.  If not, see <https://www.gnu.org/licenses/>.
  *
- * Copyright Christoph Tack, 2018
+ * Copyright Christoph Tack, 2021
+ * 
 */
+/**
+ * The seconds decoder tries to find the first second of the minute.
+ * If this is found, then it provides time data of the previous minute and also the current second in the current minute.
+ */
 #include "secondsDecoder.h"
 
 SecondsDecoder::SecondsDecoder() : _bin(SECONDS_PER_MINUTE) {}
 
+/**
+ * @brief Each second, pulse data comes in.  It gets shifted into the bit shifter.
+ * After that, a correlator is run on the bit shifter.  The results are added to the current bin.
+ * The bin that has the highest score is the most likely to be the minute start.
+ * Following markers will be used:
+ *  - 0-bit on second 0
+ *  - timezone bits : bit 17 must be different from bit 18
+ *  - 1-bit on second 20
+ *  - even parity over bits 21-28
+ *  - even parity over bits 29–35
+ *  - even parity over date bits 36–58
+ *  - sync mark on second 59
+ * @param isSyncMark true when this second is the first second of the minute.
+ * @param pulseLength pulse length of the current second.
+ */
 void SecondsDecoder::updateSeconds(const bool isSyncMark, const SECONDS_DATA pulseLength)
 {
-    /* Each second, pulse data comes in.  It gets shifted into the bit shifter.
-     * After that, a correlator is run on the bit shifter.  The results are added to the current bin.
-     * The bin that has the highest score is the most likely to be the minute start.
-     * Following markers will be used:
-     *  - 0-bit on second 0
-     *  - timezone bits : bit 17 must be different from bit 18
-     *  - 1-bit on second 20
-     *  - even parity over bits 21-28
-     *  - even parity over bits 29–35
-     *  - even parity over date bits 36–58
-     *  - sync mark on second 59
-     */
-    //Serial.printf("%d %d\r\n", isSyncMark, pulseLength);
-    //Shift in new data from right to left (because LSb is sent first)
+    Serial.printf("%d %d\r\n", isSyncMark, pulseLength);
     _curData.validBitCtr++;
-    _curData.bitShifter >>= 1;
+     //Shift in new data from right to left (because LSb is sent first)
+   _curData.bitShifter >>= 1;
     if (pulseLength == LONGPULSE)
     {
         _curData.bitShifter |= 0x800000000000000U;
@@ -62,7 +70,7 @@ void SecondsDecoder::updateSeconds(const bool isSyncMark, const SECONDS_DATA pul
         parityCheck = (_curData.bitShifter >> 28) & 0x7fffff00;
         score += dataValid(parityCheck) & 1 ? 1 : -1;
         //Detect sync mark on second 59
-        score += (isSyncMark && (pulseLength==SHORTPULSE)) ? 6 : -6;
+        score += (isSyncMark && (pulseLength == SHORTPULSE)) ? 6 : -6;
         _bin.add(_activeBin, score);
     }
 
@@ -79,13 +87,16 @@ void SecondsDecoder::updateSeconds(const bool isSyncMark, const SECONDS_DATA pul
     }
 }
 
-//return false when second doesn't contain valid data
+/**
+ * @brief get the current second of the local time
+ * @returns true when the clock was synced, else false and then the second parameter should be discarded.
+ */
 bool SecondsDecoder::getSecond(uint8_t &second)
 {
     // we have to subtract 2 seconds
     //   1 because the seconds already advanced by 1 tick
     //   1 because the sync mark is not second 0 but second 59
-    if (_minuteStartBin == 0xFF)
+    if (_minuteStartBin == INVALID)
     {
         second = 0;
         return false;
@@ -95,13 +106,19 @@ bool SecondsDecoder::getSecond(uint8_t &second)
     return true;
 }
 
+/**
+ * @brief Get the value of all the seconds of the previous minute
+ * @returns true when clock synced.  If false, then the data from the parameter should be discarded.
+ */
 bool SecondsDecoder::getTimeData(BITDATA *pdata)
 {
     *pdata = _prevData;
-    return _minuteStartBin != 0xFF;
+    return _minuteStartBin != INVALID;
 }
 
-//Check if data not zero and if parity is even
+/**
+ * @brief Check if data not zero and if parity is even
+ */
 bool SecondsDecoder::dataValid(uint64_t x)
 {
     if (!x)
