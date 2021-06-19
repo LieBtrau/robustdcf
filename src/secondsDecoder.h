@@ -43,7 +43,7 @@ public:
 	void updateSeconds(const bool isSyncMark, const SECONDS_DATA pulseLength);
 	bool getSecond(uint8_t &second);
 	bool getTimeData(BITDATA *pdata);
-
+	void clear();
 private:
 	static const int8_t LOCK_THRESHOLD = 7;
 	bool dataValid(uint64_t x);

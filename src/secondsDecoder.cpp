@@ -42,7 +42,7 @@ SecondsDecoder::SecondsDecoder() : _bin(SECONDS_PER_MINUTE) {}
  */
 void SecondsDecoder::updateSeconds(const bool isSyncMark, const SECONDS_DATA pulseLength)
 {
-    Serial.printf("%d %d\r\n", isSyncMark, pulseLength);
+    //Serial.printf("%d %d\r\n", isSyncMark, pulseLength);
     _curData.validBitCtr++;
      //Shift in new data from right to left (because LSb is sent first)
    _curData.bitShifter >>= 1;
@@ -114,6 +114,14 @@ bool SecondsDecoder::getTimeData(BITDATA *pdata)
 {
     *pdata = _prevData;
     return _minuteStartBin != INVALID;
+}
+
+void SecondsDecoder::clear()
+{
+    _bin.clear();
+    _activeBin = 0;
+    _prevData = _curData = {0, 0};
+    _minuteStartBin = INVALID;
 }
 
 /**

@@ -42,6 +42,14 @@ static void secondsTick(const bool isSyncMark, const SECONDS_DATA pulseLength)
 void RobustDcf::init()
 {
     _pd.init(secondsTick);
+    _sd.clear();
+    _minutes.clear();
+    _hours.clear();
+    _days.clear();
+    _months.clear();
+    _years.clear();
+    _tzd.clear();
+    _watchDog.start(5000, AsyncDelay::MILLIS);
 }
 
 //Becomes true once a minute (on second 59) to let you know that unixEpoch has been updated.
@@ -51,8 +59,14 @@ bool RobustDcf::update(Chronos::EpochTime &unixEpoch)
     {
         return false;
     }
-
     secondTicked = false;
+    if(_watchDog.isExpired())
+    {
+        _watchDog.restart();
+        init();
+        return false;
+    }
+    _watchDog.restart();
     _sd.updateSeconds(syncMark, clockPulseLength);
     uint8_t second;
     SecondsDecoder::BITDATA data;

@@ -45,7 +45,6 @@ PhaseDetector::PhaseDetector(const byte inputPin, bool pulseHighPolarity) : _inp
 																			_bin(BIN_COUNT, INT8_MIN),
 																			_pulseActiveHigh(pulseHighPolarity)
 {
-	memset(_phaseCorrelation, 0, sizeof(_phaseCorrelation));
 	psd = this;
 }
 
@@ -53,6 +52,12 @@ void PhaseDetector::init(event secondTickEvent)
 {
 	pinMode(_inputPin, INPUT);
 	_secondsEvent = secondTickEvent;
+
+	//clear local variables
+	_bin.clear();
+	memset(_phaseCorrelation, 0, sizeof(_phaseCorrelation));
+	_activeBin = 0;
+	_pulseStartBin = INVALID;
 }
 
 /**

@@ -24,18 +24,15 @@
  * @param dataSize  the number of different bins
  * @param initVal   the initial value for all bins
  */
-Bin::Bin(uint8_t dataSize, int8_t initVal) : _dataSize(dataSize)
+Bin::Bin(uint8_t dataSize, int8_t initVal) : _dataSize(dataSize), _initVal(initVal)
 {
     _pData = (int8_t *)malloc(_dataSize);
-    if (_pData)
-    {
-        memset(_pData, initVal, _dataSize);
-    }
+    clear();
 }
 
 Bin::~Bin()
 {
-    if(_pData)
+    if (_pData)
     {
         free(_pData);
     }
@@ -71,12 +68,20 @@ uint8_t Bin::size()
     return _dataSize;
 }
 
+void Bin::clear()
+{
+    if (_pData)
+    {
+        memset(_pData, _initVal, _dataSize);
+    }
+}
+
 /**
  * @brief Bins contain 8bit signed values, the function will offset the value in the bin to make it unsigned
  */
 uint8_t Bin::getUnsigned(uint8_t index)
 {
-    return _pData[index]+128;
+    return _pData[index] + 128;
 }
 
 /**

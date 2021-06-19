@@ -81,3 +81,10 @@ bool TimeZoneDecoder::getSecondsOffset(int16_t &offset, uint8_t &hour, uint8_t m
     offset = _isSummerTime > 0 ? TWO_HOURS : ONE_HOUR;
     return true;
 }
+
+void TimeZoneDecoder::clear()
+{
+    _timeZoneChangeAnnounced = 0;
+	_isSummerTime = 0;
+	_isPredictionCEST = false;
+}

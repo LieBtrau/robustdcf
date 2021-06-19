@@ -77,6 +77,12 @@ bool BcdDecoder::update(SecondsDecoder::BITDATA *data)
 	return true;
 }
 
+void BcdDecoder::clear()
+{
+	_currentTick = 0;
+	_bin.clear();
+}
+
 uint8_t BcdDecoder::bcd2int(uint8_t bcd)
 {
 	//ret = highnibble * 10 + lownibble = highnibble*8 + highnibble*2 + lownibble
