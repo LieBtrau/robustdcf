@@ -25,24 +25,21 @@
 class BcdDecoder
 {
 public:
-	BcdDecoder(uint8_t startBit, uint8_t bitWidth, bool withParity, uint8_t lowestValue, uint8_t highestValue, int8_t lockThreshold);
+	BcdDecoder(uint8_t startBit, uint8_t bitWidth, bool withParity, uint8_t lowestValue, uint8_t highestValue);
 	bool update(SecondsDecoder::BITDATA *data);
-	void setPrediction(uint8_t prediction);
 	bool getTime(uint8_t &value);
 	void clear();
+	void print();
+	static bool dmyParityEven(SecondsDecoder::BITDATA *data);
+	const int8_t INVALID = -1;
 
 private:
 	uint8_t bcd2int(uint8_t bcd);
-	uint8_t int2bcd(uint8_t hex);
-	bool parityOdd(uint8_t x);
-	int hammingWeight(int i);
-	uint8_t getValueInRange(uint8_t i);
+	static bool parityOdd(uint32_t x);
 	uint8_t _startBit;
 	uint8_t _bitWidth;
 	bool _withParity;
 	uint8_t _lowestValue;
 	uint8_t _highestValue;
-	int8_t _lockThreshold = 0;
-	uint8_t _currentTick = 0;
-	Bin _bin;
+	int8_t _currentValue = INVALID;
 };

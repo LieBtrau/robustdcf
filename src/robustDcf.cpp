@@ -23,11 +23,11 @@ static bool syncMark;
 static SECONDS_DATA clockPulseLength;
 
 RobustDcf::RobustDcf(const byte inputPin, bool pulseHighPolarity) : _pd(inputPin, pulseHighPolarity),
-                                                                   _minutes(21, 7, true, 0, 59, 4),
-                                                                   _hours(29, 6, true, 0, 23, 3),
-                                                                   _days(36, 6, false, 1, 31, 3),
-                                                                   _months(45, 5, false, 1, 12, 2),
-                                                                   _years(50, 8, false, 0, 99, 4)
+                                                                   _minutes(21, 7, true, 0, 59),
+                                                                   _hours(29, 6, true, 0, 23),
+                                                                   _days(36, 6, false, 1, 31),
+                                                                   _months(45, 5, false, 1, 12),
+                                                                   _years(50, 8, false, 0, 99)
 {
 }
 
@@ -85,7 +85,9 @@ bool RobustDcf::updateClock(SecondsDecoder::BITDATA *pdata, Chronos::EpochTime *
     bSuccess &= _days.update(pdata);
     bSuccess &= _months.update(pdata);
     bSuccess &= _years.update(pdata);
+    bSuccess &= BcdDecoder::dmyParityEven(pdata);
     bSuccess &= _tzd.update(pdata);
+
     if (!bSuccess)
     {
         return false;
@@ -99,13 +101,6 @@ bool RobustDcf::updateClock(SecondsDecoder::BITDATA *pdata, Chronos::EpochTime *
     Timezone myTZ(myDST, mySTD);
     Chronos::DateTime localTime = myTZ.toLocal(*pEpoch);
 
-    //set prediction for next minute
-    Chronos::DateTime predictionTime = localTime + Chronos::Span::Minutes(1);
-    _minutes.setPrediction(predictionTime.minute());
-    _hours.setPrediction(predictionTime.hour());
-    _days.setPrediction(predictionTime.day());
-    _months.setPrediction(predictionTime.month());
-    _years.setPrediction(tmYearToY2k(CalendarYrToTm(predictionTime.year())));
     return true;
 }
 

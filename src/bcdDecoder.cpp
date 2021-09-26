@@ -18,36 +18,24 @@
 */
 #include "bcdDecoder.h"
 
-BcdDecoder::BcdDecoder(uint8_t startBit, uint8_t bitWidth, bool withParity, uint8_t lowestValue, uint8_t highestValue, int8_t lockThreshold) : _startBit(startBit),
-																																			   _bitWidth(bitWidth),
-																																			   _withParity(withParity),
-																																			   _lowestValue(lowestValue),
-																																			   _highestValue(highestValue),
-																																			   _lockThreshold(lockThreshold),
-																																			   _bin(highestValue - lowestValue + 1)
+BcdDecoder::BcdDecoder(uint8_t startBit, uint8_t bitWidth, bool withParity, uint8_t lowestValue, uint8_t highestValue) : _startBit(startBit),
+																														 _bitWidth(bitWidth),
+																														 _withParity(withParity),
+																														 _lowestValue(lowestValue),
+																														 _highestValue(highestValue)
 {
 }
 
+//DCF77				UTC			Datetime
+//0x623a4843141ae6 	1543022280	Sa, 24.11.18 02:18:00, WZ
 bool BcdDecoder::getTime(uint8_t &value)
 {
-	uint8_t bin = _bin.maximum(_lockThreshold);
-	if (bin == INVALID)
-	{
-		return false;
-	}
-	//Convert index of the bin to a decimal value within the expected range.
-	value = getValueInRange(bin);
-	return true;
+	value = _currentValue;
+	return _currentValue != INVALID;
 }
 
-void BcdDecoder::setPrediction(uint8_t prediction)
+void BcdDecoder::print()
 {
-	uint8_t bin = _bin.maximum(_lockThreshold);
-	if (bin == INVALID)
-	{
-		return;
-	}
-	_currentTick = (_bin.size() + prediction - _lowestValue - bin) % _bin.size();
 }
 
 /**
@@ -57,30 +45,62 @@ void BcdDecoder::setPrediction(uint8_t prediction)
  */
 bool BcdDecoder::update(SecondsDecoder::BITDATA *data)
 {
-	if (data->validBitCtr < SecondsDecoder::SECONDS_PER_MINUTE - _startBit)
+	if (data->validBitCtr < _startBit + _bitWidth + (_withParity ? 1 : 0) + 1)
 	{
 		//not enough valid samples in the data buffer
+		//Serial.printf("%d\tnot enough samples\r\n", _startBit);
 		return false;
 	}
-	uint64_t newData = data->bitShifter >> _startBit;
-	newData &= (1 << (_bitWidth + (_withParity ? 1 : 0))) - 1;
-	for (uint8_t i = 0; i < _bin.size(); i++)
+	uint64_t newData = data->bitShifter >> _startBit; //remove lower bits in bitshifter that don't belong to the BCD.
+	uint64_t bitmask = (1 << (_bitWidth + (_withParity ? 1 : 0))) - 1;
+	newData &= bitmask; //remove higher bits in the bitshifter that don't belong to the BCD.
+	if (_withParity)
 	{
-		uint8_t prediction = int2bcd(getValueInRange(i));
-		if (_withParity && parityOdd(prediction))
+		if (parityOdd(newData))
 		{
-			prediction |= 1 << _bitWidth;
+			//Serial.printf("%d\twrong parity\r\n", _startBit);
+			return false;
 		}
-		int8_t score = ((_bitWidth + (_withParity ? 1 : 0)) >> 1) - hammingWeight(newData ^ prediction);
-		_bin.add(i, score);
+		newData &= (bitmask >> 1); //remove parity bit
 	}
+	int tempVal = bcd2int(newData);
+	if (tempVal < _lowestValue || tempVal > _highestValue)
+	{
+		//Serial.printf("%d\tvalue out of range\r\n", _startBit);
+		return false;
+	}
+	_currentValue = tempVal;
 	return true;
 }
 
 void BcdDecoder::clear()
 {
-	_currentTick = 0;
-	_bin.clear();
+	_currentValue = INVALID;
+}
+
+/**
+ * Calculate parity over day, month, week, year
+ */
+bool BcdDecoder::dmyParityEven(SecondsDecoder::BITDATA *data)
+{
+	const int STARTBIT = 36;
+	const int BITWIDTH = 23; //including parity bit
+	const int PARITYBIT = 58;
+	if (data->validBitCtr < PARITYBIT + 1)
+	{
+		//not enough valid samples in the data buffer
+		//Serial.printf("dmy not enough samples\r\n");
+		return false;
+	}
+	uint64_t newData = data->bitShifter >> STARTBIT; //remove lower bits in bitshifter that don't belong to the BCD.
+	uint64_t bitmask = (1 << BITWIDTH) - 1;
+	newData &= bitmask; //remove higher bits in the bitshifter that don't belong to the BCD.
+	bool result = !parityOdd(newData);
+	// if (!result)
+	// {
+	// 	Serial.println("dmy\twrong parity");
+	// }
+	return result;
 }
 
 uint8_t BcdDecoder::bcd2int(uint8_t bcd)
@@ -91,30 +111,13 @@ uint8_t BcdDecoder::bcd2int(uint8_t bcd)
 	return (bcd >> 1) + (bcd >> 3) + ret;
 }
 
-//https://www.electronicdesign.com/displays/easily-convert-decimal-numbers-their-binary-and-bcd-formats
-uint8_t BcdDecoder::int2bcd(uint8_t hex)
+//https://stackoverflow.com/questions/21617970/how-to-check-if-value-has-even-parity-of-bits-or-odd
+bool BcdDecoder::parityOdd(uint32_t x)
 {
-	uint8_t highNibble = hex / 10;
-	return (highNibble << 2) + (highNibble << 1) + hex;
-}
-
-bool BcdDecoder::parityOdd(uint8_t x)
-{
+	x ^= x >> 16;
+	x ^= x >> 8;
 	x ^= x >> 4;
-	x &= 0xf;
-	return (0x6996 >> x) & 1;
-}
-
-//https://stackoverflow.com/questions/109023/how-to-count-the-number-of-set-bits-in-a-32-bit-integer#109025
-int BcdDecoder::hammingWeight(int i)
-{
-	i = i - ((i >> 1) & 0x55555555);
-	i = (i & 0x33333333) + ((i >> 2) & 0x33333333);
-	return (((i + (i >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;
-}
-
-// binOffset = 0 to _datasize - 1;
-uint8_t BcdDecoder::getValueInRange(uint8_t binOffset)
-{
-	return _lowestValue + ((binOffset + _currentTick) % _bin.size());
+	x ^= x >> 2;
+	x ^= x >> 1;
+	return x & 1;
 }

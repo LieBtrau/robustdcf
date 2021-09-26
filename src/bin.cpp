@@ -63,7 +63,7 @@ void Bin::add(uint8_t index, int8_t N)
 /**
  * @brief Get the number of different bins
  */
-uint8_t Bin::size()
+uint8_t Bin::count()
 {
     return _dataSize;
 }
@@ -85,24 +85,29 @@ uint8_t Bin::getUnsigned(uint8_t index)
 }
 
 /**
- * @brief Find the bin that contains the highest value and return its index
+ * @brief Find the bin that contains the highest value and return its index.
+ * Only a single peak maximum is desired.  So there should be a significant difference to the second largest number.
  */
 uint8_t Bin::maximum(int8_t threshold)
 {
+    const int8_t THRESHOLD = 2; //Minimum difference required between largest and second largest number.
     int8_t maximum = INT8_MIN;
+    int8_t max2nd = INT8_MIN;
     uint8_t maxBin = INVALID;
     //Find bin with the highest score.
     for (uint8_t i = 0; i < _dataSize; i++)
     {
         if (_pData[i] >= max(maximum, threshold))
         {
+            max2nd = maximum;
             maximum = _pData[i];
             maxBin = i;
+        }else if(_pData[i] > max2nd)
+        {
+            max2nd = _pData[i];
         }
-        // Serial1.print(_pData[i]);
-        // Serial1.print(" ");
     }
-    return maxBin;
+    return maximum - abs(max2nd) >= THRESHOLD ? maxBin : INVALID;
 }
 
 /**

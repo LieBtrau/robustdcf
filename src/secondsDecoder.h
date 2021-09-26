@@ -35,8 +35,8 @@ class SecondsDecoder
 public:
 	typedef struct
 	{
-		uint64_t bitShifter;
-		uint8_t validBitCtr;
+		uint64_t bitShifter;	//!<the received bits in a single minute
+		uint8_t validBitCtr;	//!<the number of valid bits in bitShifter.  Each second, this counter increases.  It gets cleared at the end of the minute.
 	} BITDATA;
 	static const uint8_t SECONDS_PER_MINUTE = 60;
 	SecondsDecoder();
