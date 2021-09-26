@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # This program parses ".log"-files that have been downloaded from https://www.dcf77logs.de/logs and https://www.dcf77logs.de/ereignisse.
 # The logging file contains the DCF-pattern and the corresponding date string.
 # The DCF-pattern is converted to a number.
@@ -13,7 +15,6 @@ import serial
 import datetime
 import pytz
 import dateutil.parser
-
 
 def datestring2unixepoch(dtString):
     "Convert a date in a string, e.g. 'So, 27.03.11 03:00:00, SZ' to unix epoch time."
@@ -58,33 +59,42 @@ def parseLines(lines):
                     retList.append(tup)
     return retList
 
-fileLines = readFile('DcfLog_20181124.log')
-# fileLines = readFile('Winterzeit.log')
-# fileLines = readFile('Sommerzeit.log')
-# fileLines = readFile('Jahreswechsel.log')
-# fileLines = readFile('DcfLog_20181108.log')
-pData = parseLines(fileLines)
+def main():
+    fileLines = readFile('DcfLog_20181124.log')
+    # fileLines = readFile('Winterzeit.log')
+    # fileLines = readFile('Sommerzeit.log')
+    # fileLines = readFile('Jahreswechsel.log')
+    # fileLines = readFile('DcfLog_20181108.log')
+    pData = parseLines(fileLines)
 
-ser = serial.Serial(
-    port='/dev/ttyUSB0',
-    baudrate=115200,
-    bytesize=serial.EIGHTBITS,
-    parity=serial.PARITY_NONE,
-    stopbits=serial.STOPBITS_ONE
-)
-ser.isOpen
+    ser = serial.Serial(
+        port='/dev/ttyACM0',
+        baudrate=115200,
+        bytesize=serial.EIGHTBITS,
+        parity=serial.PARITY_NONE,
+        stopbits=serial.STOPBITS_ONE,
+        timeout=5
+    )
+    ser.isOpen
 
-print "\nMake sure to reset the BluePill before running this test."
-succes = 0
-for tup in pData:
-    ser.write(hex(tup[0])+'Z')
-    readEpoch = int(ser.readline())
-    if readEpoch == tup[1]:
-        succes = succes+1
-    else:
-        print "Error: Soll: " + str(tup[1]) + "\tIst: " + str(
-            readEpoch) + "\tDifference : " + str(readEpoch - tup[1]) + '\t' + tup[2] + '\t' + str(tup[0])
-    # print str(tup[0])+'\t'+str(tup[1])+'\t'+str(tup[2])
-    # print str(tup[0])+','
-print str(succes) + ' minutes ok of ' + str(len(pData)) + ' minutes'
-ser.close()
+    print ("\nMake sure to reset the BluePill before running this test.")
+    succes = 0
+    for tup in pData:
+        timestamp = hex(tup[0])+'Z'
+        print("Sent: "+ timestamp)
+        ser.write(timestamp.encode())
+        readEpoch = int(ser.readline())
+        print(readEpoch)
+        if readEpoch == tup[1]:
+            succes = succes+1
+        else:
+            print ("Error: Soll: " + str(tup[1]) + "\tIst: " + str(
+                readEpoch) + "\tDifference : " + str(readEpoch - tup[1]) + '\t' + tup[2] + '\t' + str(tup[0]))
+        # print str(tup[0])+'\t'+str(tup[1])+'\t'+str(tup[2])
+        # print str(tup[0])+','
+    print(str(succes) + ' minutes ok of ' + str(len(pData)) + ' minutes')
+    ser.close()
+    
+if __name__ == "__main__":
+    # execute only if run as a script
+    main()
