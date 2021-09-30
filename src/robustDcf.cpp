@@ -49,7 +49,7 @@ void RobustDcf::init()
     _months.clear();
     _years.clear();
     _tzd.clear();
-    _watchDog.start(5000, AsyncDelay::MILLIS);
+    _watchDog.start(10000, AsyncDelay::MILLIS);
 }
 
 //Becomes true once a minute (on second 59) to let you know that unixEpoch has been updated.
