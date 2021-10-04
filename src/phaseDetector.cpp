@@ -67,6 +67,7 @@ void PhaseDetector::init(event secondTickEvent)
  */
 void PhaseDetector::secondsSampler(const FUZZY averagedInput)
 {
+	const int ZERO_ONE_THRESHOLD = 5; //threshold for discriminating between a one and a zero bit.
 	static byte state = 0;
 	static int pulseCtr = 0;
 	static bool syncMark = false;
@@ -103,9 +104,8 @@ void PhaseDetector::secondsSampler(const FUZZY averagedInput)
 			state = 0;
 			if (_secondsEvent)
 			{
-
-				SECONDS_DATA pulseLength = pulseCtr > 6 ? LONGPULSE : pulseCtr < -6 ? SHORTPULSE
-																					: UNKNOWNPULSE;
+				SECONDS_DATA pulseLength = pulseCtr >= ZERO_ONE_THRESHOLD ? LONGPULSE : pulseCtr <= -ZERO_ONE_THRESHOLD ? SHORTPULSE
+																													  : UNKNOWNPULSE;
 				//A syncMark should normally be accompanied by a SHORTPULSE.
 				_secondsEvent(syncMark, pulseLength);
 			}
